@@ -1,8 +1,7 @@
 import type { Metadata } from 'next'
 import { GeistSans } from 'geist/font/sans'
 import { GeistMono } from 'geist/font/mono'
-import { ThemeProvider } from 'next-themes'
-import { Toaster } from '@/components/ui/toaster'
+import { Providers } from './providers'
 import './globals.css'
 
 export const metadata: Metadata = {
@@ -34,15 +33,7 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body className="font-sans">
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="dark"
-          enableSystem
-          disableTransitionOnChange
-        >
-          {children}
-          <Toaster />
-        </ThemeProvider>
+        <Providers>{children}</Providers>
       </body>
     </html>
   )
