@@ -29,23 +29,46 @@ export const profileUpdateSchema = z.object({
 // ─── Onboarding ───────────────────────────────────────────────────────────────
 
 export const onboardingSchema = z.object({
-  targetRole: z
-    .string()
-    .min(2, 'Please enter a target role')
-    .max(100),
-  university: z
-    .string()
-    .min(2, 'Please enter your university')
-    .max(150),
-  graduationYear: z
-    .number()
-    .int()
-    .min(2020)
-    .max(2040),
+  targetRole: z.string().min(2, 'Please enter a target role').max(100),
+  university: z.string().min(2, 'Please enter your university').max(150),
+  graduationYear: z.number().int().min(2020).max(2040),
   experienceLevel: z.enum(['beginner', 'intermediate', 'advanced']),
 })
 
-export type LoginInput        = z.infer<typeof loginSchema>
-export type RegisterInput     = z.infer<typeof registerSchema>
+// ─── Internship Applications ──────────────────────────────────────────────────
+
+const emptyToNull = z
+  .string()
+  .transform((v) => (v.trim() === '' ? null : v))
+  .nullable()
+  .optional()
+
+export const internshipApplicationSchema = z.object({
+  company_name: z.string().min(1, 'Company name is required').max(200),
+  role_title: z.string().min(1, 'Role title is required').max(200),
+  status: z
+    .enum(['applied', 'online_assessment', 'interview', 'rejected', 'accepted'])
+    .default('applied'),
+  applied_date: emptyToNull,
+  deadline: emptyToNull,
+  job_url: emptyToNull,
+  location: emptyToNull,
+  salary_range: emptyToNull,
+  recruiter_name: emptyToNull,
+  recruiter_email: z
+    .string()
+    .email('Invalid email')
+    .nullable()
+    .optional()
+    .or(z.literal(''))
+    .transform((v) => (v === '' ? null : v)),
+  notes: emptyToNull,
+  resume_version: emptyToNull,
+  is_priority: z.boolean().default(false),
+})
+
+export type LoginInput = z.infer<typeof loginSchema>
+export type RegisterInput = z.infer<typeof registerSchema>
 export type ProfileUpdateInput = z.infer<typeof profileUpdateSchema>
-export type OnboardingInput   = z.infer<typeof onboardingSchema>
+export type OnboardingInput = z.infer<typeof onboardingSchema>
+export type InternshipApplicationInput = z.infer<typeof internshipApplicationSchema>

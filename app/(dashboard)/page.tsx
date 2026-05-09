@@ -1,61 +1,41 @@
 import { createClient } from '@/lib/supabase/server'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Briefcase, BookOpen, Map, Lightbulb, ArrowRight } from 'lucide-react'
+import { Briefcase, BookOpen, Map, Lightbulb, ArrowRight, Clock } from 'lucide-react'
 import Link from 'next/link'
+import { StatusBadge } from '@/components/internships/StatusBadge'
+import { relativeDate } from '@/lib/utils/dates'
 import type { Metadata } from 'next'
+import type { ApplicationStatus } from '@/lib/types/database.types'
 
 export const metadata: Metadata = {
   title: 'Dashboard',
 }
 
-const features = [
-  {
-    icon: Briefcase,
-    title: 'Internship Tracker',
-    description:
-      'Track every application, deadline, and interview. Never lose sight of an opportunity.',
-    href: '/internships',
-    color: 'text-blue-500',
-    bg: 'bg-blue-500/10',
-    status: 'Coming in Phase 3',
-  },
+const AI_FEATURES = [
   {
     icon: Map,
     title: 'Career Roadmap',
-    description:
-      'Generate a personalised learning path toward your target role with AI-powered guidance.',
+    description: 'Generate a personalised learning path toward your target role.',
     href: '/roadmap',
     color: 'text-purple-500',
     bg: 'bg-purple-500/10',
-    status: 'Coming in Phase 4',
   },
   {
     icon: Lightbulb,
     title: 'Lecture Explainer',
-    description:
-      'Paste any CS lecture or textbook excerpt and get a clear, student-friendly explanation.',
+    description: 'Paste any CS lecture and get a clear, student-friendly explanation.',
     href: '/explainer',
     color: 'text-amber-500',
     bg: 'bg-amber-500/10',
-    status: 'Coming in Phase 4',
   },
   {
     icon: BookOpen,
     title: 'Study Vault',
-    description:
-      'Store, search, and review your notes. Save AI explanations directly for later.',
+    description: 'Store, search, and review your notes. Save AI outputs for later.',
     href: '/vault',
     color: 'text-emerald-500',
     bg: 'bg-emerald-500/10',
-    status: 'Coming in Phase 3',
   },
-]
-
-const stats = [
-  { label: 'Applications', value: '—', icon: Briefcase },
-  { label: 'Study Notes', value: '—', icon: BookOpen },
-  { label: 'Roadmaps', value: '—', icon: Map },
-  { label: 'AI Queries', value: '—', icon: Lightbulb },
 ]
 
 export default async function DashboardPage() {
@@ -68,67 +48,168 @@ export default async function DashboardPage() {
     (user?.user_metadata?.full_name as string | undefined)?.split(' ')[0] ??
     'there'
 
+  // Fetch real internship data
+  const { data: applications } = await supabase
+    .from('internship_applications')
+    .select('id, company_name, role_title, status, deadline, is_priority, created_at')
+    .eq('user_id', user!.id)
+    .order('created_at', { ascending: false })
+
+  const apps = applications ?? []
+  const statusCounts = apps.reduce(
+    (acc, a) => {
+      acc[a.status as ApplicationStatus] = (acc[a.status as ApplicationStatus] ?? 0) + 1
+      return acc
+    },
+    {} as Record<ApplicationStatus, number>
+  )
+
+  const upcoming = apps
+    .filter((a) => a.deadline && new Date(a.deadline) >= new Date())
+    .sort((a, b) => new Date(a.deadline!).getTime() - new Date(b.deadline!).getTime())
+    .slice(0, 3)
+
+  const stats = [
+    { label: 'Applications', value: apps.length, icon: Briefcase, href: '/internships' },
+    { label: 'Interviews', value: statusCounts['interview'] ?? 0, icon: Briefcase, href: '/internships' },
+    { label: 'Study Notes', value: '—', icon: BookOpen, href: '/vault' },
+    { label: 'Roadmaps', value: '—', icon: Map, href: '/roadmap' },
+  ]
+
   return (
     <div className="space-y-8 animate-fade-in">
-      {/* Page heading */}
       <div className="space-y-1">
         <h1 className="text-2xl font-semibold tracking-tight">
-          Good to have you, {firstName}
+          Good to see you, {firstName}
         </h1>
         <p className="text-sm text-muted-foreground">
-          Your AI-powered career dashboard. Features roll out phase by phase.
+          Here&apos;s your career snapshot.
         </p>
       </div>
 
-      {/* Stats row */}
+      {/* Stats */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         {stats.map((stat) => (
-          <Card key={stat.label} className="border-border/60">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-xs font-medium text-muted-foreground">
-                {stat.label}
-              </CardTitle>
-              <stat.icon className="h-3.5 w-3.5 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold tabular-nums">{stat.value}</div>
-            </CardContent>
-          </Card>
+          <Link key={stat.label} href={stat.href}>
+            <Card className="border-border/60 transition-colors hover:border-foreground/20">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-xs font-medium text-muted-foreground">
+                  {stat.label}
+                </CardTitle>
+                <stat.icon className="h-3.5 w-3.5 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold tabular-nums">{stat.value}</div>
+              </CardContent>
+            </Card>
+          </Link>
         ))}
       </div>
 
-      {/* Feature cards */}
-      <div>
-        <h2 className="mb-4 text-sm font-medium text-muted-foreground uppercase tracking-widest">
-          Features
-        </h2>
-        <div className="grid gap-3 sm:grid-cols-2">
-          {features.map((feature) => (
-            <Link key={feature.title} href={feature.href}>
-              <Card className="group border-border/60 transition-all duration-200 hover:border-foreground/20 hover:shadow-md cursor-pointer h-full">
-                <CardContent className="p-5">
-                  <div className="flex items-start gap-4">
-                    <div
-                      className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${feature.bg}`}
-                    >
-                      <feature.icon className={`h-4 w-4 ${feature.color}`} />
-                    </div>
-                    <div className="flex-1 space-y-1">
-                      <div className="flex items-center justify-between">
-                        <p className="text-sm font-medium">{feature.title}</p>
-                        <ArrowRight className="h-3.5 w-3.5 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
-                      </div>
-                      <p className="text-xs text-muted-foreground leading-relaxed">
-                        {feature.description}
-                      </p>
-                      <p className="text-[11px] text-muted-foreground/60">
-                        {feature.status}
-                      </p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+      <div className="grid gap-4 lg:grid-cols-2">
+        {/* Recent applications */}
+        <Card className="border-border/60">
+          <CardHeader className="flex flex-row items-center justify-between pb-3">
+            <CardTitle className="text-sm font-medium">Recent Applications</CardTitle>
+            <Link
+              href="/internships"
+              className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+            >
+              View all
+              <ArrowRight className="h-3 w-3" />
             </Link>
+          </CardHeader>
+          <CardContent className="space-y-0">
+            {apps.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-8 text-center">
+                <p className="text-sm text-muted-foreground">No applications yet</p>
+                <Link
+                  href="/internships"
+                  className="mt-2 text-xs text-foreground underline-offset-4 hover:underline"
+                >
+                  Add your first application
+                </Link>
+              </div>
+            ) : (
+              apps.slice(0, 5).map((app, i) => (
+                <div
+                  key={app.id}
+                  className={`flex items-center justify-between py-2.5 ${
+                    i < Math.min(apps.length - 1, 4) ? 'border-b' : ''
+                  }`}
+                >
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium">{app.company_name}</p>
+                    <p className="truncate text-xs text-muted-foreground">{app.role_title}</p>
+                  </div>
+                  <StatusBadge status={app.status} className="ml-3 shrink-0" />
+                </div>
+              ))
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Upcoming deadlines */}
+        <Card className="border-border/60">
+          <CardHeader className="flex flex-row items-center justify-between pb-3">
+            <CardTitle className="text-sm font-medium">Upcoming Deadlines</CardTitle>
+            <Clock className="h-3.5 w-3.5 text-muted-foreground" />
+          </CardHeader>
+          <CardContent className="space-y-0">
+            {upcoming.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-8 text-center">
+                <p className="text-sm text-muted-foreground">No upcoming deadlines</p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Deadlines you set will appear here
+                </p>
+              </div>
+            ) : (
+              upcoming.map((app, i) => (
+                <div
+                  key={app.id}
+                  className={`flex items-center justify-between py-2.5 ${
+                    i < upcoming.length - 1 ? 'border-b' : ''
+                  }`}
+                >
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium">{app.company_name}</p>
+                    <p className="truncate text-xs text-muted-foreground">{app.role_title}</p>
+                  </div>
+                  <span className="ml-3 shrink-0 text-xs font-medium text-amber-600 dark:text-amber-400">
+                    {relativeDate(app.deadline!)}
+                  </span>
+                </div>
+              ))
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* AI features coming soon */}
+      <div>
+        <h2 className="mb-3 text-xs font-medium uppercase tracking-widest text-muted-foreground">
+          Coming in Phase 4
+        </h2>
+        <div className="grid gap-3 sm:grid-cols-3">
+          {AI_FEATURES.map((f) => (
+            <Card
+              key={f.title}
+              className="border-border/40 opacity-60"
+            >
+              <CardContent className="p-4">
+                <div className="flex items-start gap-3">
+                  <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${f.bg}`}>
+                    <f.icon className={`h-4 w-4 ${f.color}`} />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">{f.title}</p>
+                    <p className="mt-0.5 text-xs text-muted-foreground leading-relaxed">
+                      {f.description}
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           ))}
         </div>
       </div>
