@@ -1,7 +1,7 @@
 'use client'
 
 import { usePathname } from 'next/navigation'
-import { Moon, Sun, LogOut, Settings, User } from 'lucide-react'
+import { Moon, Sun, LogOut, Settings } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import { useTransition } from 'react'
 import { logout } from '@/lib/actions/auth'

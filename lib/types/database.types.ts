@@ -273,14 +273,14 @@ export type Database = {
         Relationships: []
       }
     }
-    Views: {}
-    Functions: {}
+    Views: Record<string, never>
+    Functions: Record<string, never>
     Enums: {
       application_status: ApplicationStatus
       experience_level: ExperienceLevel
       ai_feature: AiFeature
     }
-    CompositeTypes: {}
+    CompositeTypes: Record<string, never>
   }
 }
 

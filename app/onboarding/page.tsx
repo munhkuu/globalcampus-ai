@@ -16,7 +16,6 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { cn } from '@/lib/utils/cn'
-import type { Metadata } from 'next'
 
 const EXPERIENCE_OPTIONS = [
   {

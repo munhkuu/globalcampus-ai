@@ -31,7 +31,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { Skeleton } from '@/components/ui/skeleton'
 import { ApplicationForm } from './ApplicationForm'
 import { StatusBadge } from './StatusBadge'
 import { StatusFilter, type FilterStatus } from './StatusFilter'
