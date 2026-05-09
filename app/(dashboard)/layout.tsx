@@ -17,10 +17,20 @@ export default async function DashboardLayout({
     redirect('/login')
   }
 
-  const displayName: string =
-    user.user_metadata?.full_name ?? user.email ?? 'User'
+  // Fetch profile to check onboarding status
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', user.id)
+    .single()
+
+  if (!profile?.onboarding_completed) {
+    redirect('/onboarding')
+  }
+
+  const displayName: string = profile?.full_name ?? user.email ?? 'User'
   const email: string = user.email ?? ''
-  const avatarUrl: string | null = user.user_metadata?.avatar_url ?? null
+  const avatarUrl: string | null = profile?.avatar_url ?? null
   const initials: string = displayName
     .split(' ')
     .slice(0, 2)

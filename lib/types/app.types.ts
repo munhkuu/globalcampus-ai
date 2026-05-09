@@ -2,6 +2,11 @@ import type { User } from '@supabase/supabase-js'
 import type { Tables } from './database.types'
 
 export type Profile = Tables<'profiles'>
+export type InternshipApplication = Tables<'internship_applications'>
+export type VaultNote = Tables<'vault_notes'>
+export type StudyGoal = Tables<'study_goals'>
+export type RoadmapSession = Tables<'roadmap_sessions'>
+export type AiInteraction = Tables<'ai_interactions'>
 
 export type UserWithProfile = User & {
   profile?: Profile | null
