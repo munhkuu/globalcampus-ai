@@ -2,7 +2,7 @@
 
 import { usePathname } from 'next/navigation'
 import { Moon, Sun, LogOut, Settings } from 'lucide-react'
-import { useTheme } from 'next-themes'
+import { useTheme } from '@/components/theme-provider'
 import { useTransition } from 'react'
 import { logout } from '@/lib/actions/auth'
 import { Button } from '@/components/ui/button'
