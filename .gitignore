@@ -31,3 +31,6 @@ supabase/.temp
 # Misc
 *.log
 .cache
+
+# Claude Code local agent config
+.claude/

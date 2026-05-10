@@ -1,13 +1,13 @@
-'use client'
+"use client";
 
-import { useState, useTransition } from 'react'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import Link from 'next/link'
-import { login, loginWithGoogle } from '@/lib/actions/auth'
-import { loginSchema, type LoginInput } from '@/lib/utils/validators'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+import { useState, useTransition } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import Link from "next/link";
+import { login, loginWithGoogle } from "@/lib/actions/auth";
+import { loginSchema, type LoginInput } from "@/lib/utils/validators";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Form,
   FormControl,
@@ -15,7 +15,7 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form'
+} from "@/components/ui/form";
 
 function GoogleIcon() {
   return (
@@ -42,30 +42,30 @@ function GoogleIcon() {
         fill="#EA4335"
       />
     </svg>
-  )
+  );
 }
 
 export default function LoginPage() {
-  const [serverError, setServerError] = useState<string>()
-  const [isPending, startTransition] = useTransition()
+  const [serverError, setServerError] = useState<string>();
+  const [isPending, startTransition] = useTransition();
 
   const form = useForm<LoginInput>({
     resolver: zodResolver(loginSchema),
-    defaultValues: { email: '', password: '' },
-  })
+    defaultValues: { email: "", password: "" },
+  });
 
   function onSubmit(values: LoginInput) {
-    setServerError(undefined)
+    setServerError(undefined);
     startTransition(async () => {
-      const formData = new FormData()
-      formData.set('email', values.email)
-      formData.set('password', values.password)
+      const formData = new FormData();
+      formData.set("email", values.email);
+      formData.set("password", values.password);
 
-      const result = await login(formData)
+      const result = await login(formData);
       if (result?.error) {
-        setServerError(result.error)
+        setServerError(result.error);
       }
-    })
+    });
   }
 
   return (
@@ -83,10 +83,7 @@ export default function LoginPage() {
         </div>
 
         {/* Google OAuth */}
-        <form
-          action={loginWithGoogle}
-          className="w-full"
-        >
+        <form action={loginWithGoogle} className="w-full">
           <Button
             type="submit"
             variant="outline"
@@ -155,18 +152,14 @@ export default function LoginPage() {
               <p className="text-xs text-destructive">{serverError}</p>
             )}
 
-            <Button
-              type="submit"
-              className="w-full"
-              disabled={isPending}
-            >
-              {isPending ? 'Signing in…' : 'Sign in'}
+            <Button type="submit" className="w-full" disabled={isPending}>
+              {isPending ? "Signing in…" : "Sign in"}
             </Button>
           </form>
         </Form>
 
         <p className="text-center text-sm text-muted-foreground">
-          Don&apos;t have an account?{' '}
+          Don&apos;t have an account?{" "}
           <Link
             href="/register"
             className="font-medium text-foreground underline-offset-4 hover:underline"
@@ -176,5 +169,5 @@ export default function LoginPage() {
         </p>
       </div>
     </div>
-  )
+  );
 }

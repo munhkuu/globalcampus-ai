@@ -21,7 +21,10 @@ export async function login(formData: FormData) {
   const { error } = await supabase.auth.signInWithPassword(result.data)
 
   if (error) {
-    return { error: 'Invalid email or password' }
+    if (error.message.toLowerCase().includes('email not confirmed')) {
+      return { error: 'Please confirm your email before signing in. Check your inbox for a verification link.' }
+    }
+    return { error: error.message || 'Invalid email or password' }
   }
 
   revalidatePath('/', 'layout')
@@ -42,7 +45,7 @@ export async function register(formData: FormData) {
     return { error: result.error.issues[0]?.message ?? 'Invalid input' }
   }
 
-  const { error } = await supabase.auth.signUp({
+  const { data, error } = await supabase.auth.signUp({
     email: result.data.email,
     password: result.data.password,
     options: {
@@ -53,6 +56,12 @@ export async function register(formData: FormData) {
 
   if (error) {
     return { error: error.message }
+  }
+
+  // No session => Supabase requires email confirmation. Send the user to login
+  // with a clear message instead of bouncing them through middleware.
+  if (!data.session) {
+    redirect('/login?message=Check+your+email+to+confirm+your+account')
   }
 
   revalidatePath('/', 'layout')
