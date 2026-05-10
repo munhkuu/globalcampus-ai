@@ -7,62 +7,45 @@ import { relativeDate } from '@/lib/utils/dates'
 import type { Metadata } from 'next'
 import type { ApplicationStatus } from '@/lib/types/database.types'
 
-export const metadata: Metadata = {
-  title: 'Dashboard',
-}
+export const metadata: Metadata = { title: 'Dashboard' }
 
-const AI_FEATURES = [
-  {
-    icon: Map,
-    title: 'Career Roadmap',
-    description: 'Generate a personalised learning path toward your target role.',
-    href: '/roadmap',
-    color: 'text-purple-500',
-    bg: 'bg-purple-500/10',
-  },
-  {
-    icon: Lightbulb,
-    title: 'Lecture Explainer',
-    description: 'Paste any CS lecture and get a clear, student-friendly explanation.',
-    href: '/explainer',
-    color: 'text-amber-500',
-    bg: 'bg-amber-500/10',
-  },
-  {
-    icon: BookOpen,
-    title: 'Study Vault',
-    description: 'Store, search, and review your notes. Save AI outputs for later.',
-    href: '/vault',
-    color: 'text-emerald-500',
-    bg: 'bg-emerald-500/10',
-  },
-]
+function getGreeting(): string {
+  const h = new Date().getHours()
+  if (h < 12) return 'Good morning'
+  if (h < 17) return 'Good afternoon'
+  return 'Good evening'
+}
 
 export default async function DashboardPage() {
   const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const { data: { user } } = await supabase.auth.getUser()
 
   const firstName =
-    (user?.user_metadata?.full_name as string | undefined)?.split(' ')[0] ??
-    'there'
+    (user?.user_metadata?.full_name as string | undefined)?.split(' ')[0] ?? 'there'
 
-  // Fetch real internship data
-  const { data: applications } = await supabase
-    .from('internship_applications')
-    .select('id, company_name, role_title, status, deadline, is_priority, created_at')
-    .eq('user_id', user!.id)
-    .order('created_at', { ascending: false })
+  // Parallel data fetching
+  const [{ data: applications }, { data: vaultNotes }, { count: roadmapCount }] =
+    await Promise.all([
+      supabase
+        .from('internship_applications')
+        .select('id, company_name, role_title, status, deadline, created_at')
+        .eq('user_id', user!.id)
+        .order('created_at', { ascending: false }),
+      supabase
+        .from('vault_notes')
+        .select('id')
+        .eq('user_id', user!.id),
+      supabase
+        .from('roadmap_sessions')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user!.id),
+    ])
 
   const apps = applications ?? []
-  const statusCounts = apps.reduce(
-    (acc, a) => {
-      acc[a.status as ApplicationStatus] = (acc[a.status as ApplicationStatus] ?? 0) + 1
-      return acc
-    },
-    {} as Record<ApplicationStatus, number>
-  )
+  const statusCounts = apps.reduce((acc, a) => {
+    acc[a.status as ApplicationStatus] = (acc[a.status as ApplicationStatus] ?? 0) + 1
+    return acc
+  }, {} as Record<ApplicationStatus, number>)
 
   const upcoming = apps
     .filter((a) => a.deadline && new Date(a.deadline) >= new Date())
@@ -72,19 +55,25 @@ export default async function DashboardPage() {
   const stats = [
     { label: 'Applications', value: apps.length, icon: Briefcase, href: '/internships' },
     { label: 'Interviews', value: statusCounts['interview'] ?? 0, icon: Briefcase, href: '/internships' },
-    { label: 'Study Notes', value: '—', icon: BookOpen, href: '/vault' },
-    { label: 'Roadmaps', value: '—', icon: Map, href: '/roadmap' },
+    { label: 'Study Notes', value: vaultNotes?.length ?? 0, icon: BookOpen, href: '/vault' },
+    { label: 'Roadmaps', value: roadmapCount ?? 0, icon: Map, href: '/roadmap' },
+  ]
+
+  const quickLinks = [
+    { href: '/internships', icon: Briefcase, label: 'Track an application', color: 'text-blue-500', bg: 'bg-blue-500/10' },
+    { href: '/roadmap', icon: Map, label: 'Generate a roadmap', color: 'text-purple-500', bg: 'bg-purple-500/10' },
+    { href: '/explainer', icon: Lightbulb, label: 'Explain a lecture', color: 'text-amber-500', bg: 'bg-amber-500/10' },
+    { href: '/vault', icon: BookOpen, label: 'Open Study Vault', color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
   ]
 
   return (
-    <div className="space-y-8 animate-fade-in">
-      <div className="space-y-1">
+    <div className="space-y-6 animate-fade-in">
+      {/* Greeting */}
+      <div>
         <h1 className="text-2xl font-semibold tracking-tight">
-          Good to see you, {firstName}
+          {getGreeting()}, {firstName}
         </h1>
-        <p className="text-sm text-muted-foreground">
-          Here&apos;s your career snapshot.
-        </p>
+        <p className="mt-0.5 text-sm text-muted-foreground">Here&apos;s your career snapshot.</p>
       </div>
 
       {/* Stats */}
@@ -106,27 +95,21 @@ export default async function DashboardPage() {
         ))}
       </div>
 
+      {/* Main content grid */}
       <div className="grid gap-4 lg:grid-cols-2">
         {/* Recent applications */}
         <Card className="border-border/60">
           <CardHeader className="flex flex-row items-center justify-between pb-3">
             <CardTitle className="text-sm font-medium">Recent Applications</CardTitle>
-            <Link
-              href="/internships"
-              className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
-            >
-              View all
-              <ArrowRight className="h-3 w-3" />
+            <Link href="/internships" className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground">
+              View all <ArrowRight className="h-3 w-3" />
             </Link>
           </CardHeader>
           <CardContent className="space-y-0">
             {apps.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-8 text-center">
                 <p className="text-sm text-muted-foreground">No applications yet</p>
-                <Link
-                  href="/internships"
-                  className="mt-2 text-xs text-foreground underline-offset-4 hover:underline"
-                >
+                <Link href="/internships" className="mt-2 text-xs text-foreground underline-offset-4 hover:underline">
                   Add your first application
                 </Link>
               </div>
@@ -134,9 +117,7 @@ export default async function DashboardPage() {
               apps.slice(0, 5).map((app, i) => (
                 <div
                   key={app.id}
-                  className={`flex items-center justify-between py-2.5 ${
-                    i < Math.min(apps.length - 1, 4) ? 'border-b' : ''
-                  }`}
+                  className={`flex items-center justify-between py-2.5 ${i < Math.min(apps.length - 1, 4) ? 'border-b' : ''}`}
                 >
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-medium">{app.company_name}</p>
@@ -159,17 +140,13 @@ export default async function DashboardPage() {
             {upcoming.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-8 text-center">
                 <p className="text-sm text-muted-foreground">No upcoming deadlines</p>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  Deadlines you set will appear here
-                </p>
+                <p className="mt-1 text-xs text-muted-foreground">Deadlines you set will appear here</p>
               </div>
             ) : (
               upcoming.map((app, i) => (
                 <div
                   key={app.id}
-                  className={`flex items-center justify-between py-2.5 ${
-                    i < upcoming.length - 1 ? 'border-b' : ''
-                  }`}
+                  className={`flex items-center justify-between py-2.5 ${i < upcoming.length - 1 ? 'border-b' : ''}`}
                 >
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-medium">{app.company_name}</p>
@@ -185,31 +162,23 @@ export default async function DashboardPage() {
         </Card>
       </div>
 
-      {/* AI features coming soon */}
+      {/* Quick links */}
       <div>
         <h2 className="mb-3 text-xs font-medium uppercase tracking-widest text-muted-foreground">
-          Coming in Phase 4
+          Quick Actions
         </h2>
-        <div className="grid gap-3 sm:grid-cols-3">
-          {AI_FEATURES.map((f) => (
-            <Card
-              key={f.title}
-              className="border-border/40 opacity-60"
-            >
-              <CardContent className="p-4">
-                <div className="flex items-start gap-3">
-                  <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${f.bg}`}>
-                    <f.icon className={`h-4 w-4 ${f.color}`} />
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          {quickLinks.map((link) => (
+            <Link key={link.href} href={link.href}>
+              <Card className="border-border/60 transition-all hover:border-foreground/20 hover:shadow-sm cursor-pointer">
+                <CardContent className="flex flex-col items-start gap-2.5 p-4">
+                  <div className={`flex h-8 w-8 items-center justify-center rounded-lg ${link.bg}`}>
+                    <link.icon className={`h-4 w-4 ${link.color}`} />
                   </div>
-                  <div>
-                    <p className="text-sm font-medium">{f.title}</p>
-                    <p className="mt-0.5 text-xs text-muted-foreground leading-relaxed">
-                      {f.description}
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                  <p className="text-xs font-medium leading-snug">{link.label}</p>
+                </CardContent>
+              </Card>
+            </Link>
           ))}
         </div>
       </div>

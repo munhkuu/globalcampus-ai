@@ -1,84 +1,64 @@
 # GlobalCampus AI
 
-An AI-powered productivity and career platform for international computer science students studying in South Korea.
+AI-powered productivity platform for international CS students studying in South Korea — track internships, generate career roadmaps, and master your lectures.
 
 ---
 
-## What This Is
+## Features
 
-GlobalCampus AI solves a specific problem: international CS students in Korea are simultaneously managing academics in a foreign language, competing for internships in an unfamiliar recruiting ecosystem, and building technical skills for a global career — with no single tool designed for this situation.
-
-This platform centralizes four workflows:
-
-**Internship Tracker** — Log applications, track status through the Korean tech recruiting pipeline (Applied → OA → Interview), store recruiter notes, and never miss a deadline.
-
-**AI Lecture Explainer** — Paste lecture text or Korean CS terminology and receive a pedagogically calibrated explanation with code examples. This is a CS teaching assistant, not a general chatbot.
-
-**CS Career Roadmap Generator** — Input your target role, current skills, and available study hours. Receive a structured, phased learning roadmap calibrated to Korean vs. global company recruiting expectations. Track completion on the dashboard.
-
-**Study Vault** — A searchable, tagged knowledge base for algorithms, CS concepts, Korean CS terminology, interview prep, and lecture notes. AI-generated explanations save directly here.
+| Feature | Description |
+|---|---|
+| **Internship Tracker** | CRUD application tracking — status pipeline (Applied → OA → Interview → Accepted), recruiter notes, deadlines, priority flags |
+| **Lecture Explainer** | Paste any CS lecture text and get a structured explanation with code examples and Korean ↔ English term mapping |
+| **Career Roadmap** | AI generates a personalised, phase-by-phase learning plan for your target role |
+| **Study Vault** | Save, search, and tag notes. AI explanations save directly here with one click |
+| **Authentication** | Email/password + Google OAuth, protected routes, session persistence |
 
 ---
 
 ## Tech Stack
 
-| Layer | Technology | Why |
-|---|---|---|
-| Framework | Next.js 15 (App Router) | Server Components = auth-gated data never touches the client; better initial load |
-| Language | TypeScript (strict) | Types generated from Supabase schema — DB and app are never out of sync |
-| Styling | Tailwind CSS + shadcn/ui | Design token-based system; shadcn components are owned, not imported |
-| Database | Supabase (PostgreSQL 15) | Auth + DB + Storage + RLS in one service; SQL-native, not locked in |
-| AI | OpenRouter API | Provider abstraction; switch models without touching feature code |
-| Deployment | Vercel | Native Next.js deployment; zero-config preview deployments on PRs |
+| Layer | Technology |
+|---|---|
+| Framework | Next.js 15 (App Router, Server Components, Server Actions) |
+| Language | TypeScript (strict mode) |
+| Styling | Tailwind CSS + shadcn/ui |
+| Database | Supabase (PostgreSQL + Row Level Security + Auth) |
+| AI | OpenRouter API (provider-agnostic — swap models via env var) |
+| Deployment | Vercel |
 
 ---
 
-## Getting Started
+## Local Setup
 
-### Prerequisites
-
-- Node.js 20+
-- npm 10+ (or pnpm)
-- Supabase account
-- OpenRouter account (or compatible AI provider)
-- Vercel account (for deployment)
-
-### Local Development
-
-**1. Clone and install:**
+**1. Clone and install**
 ```bash
-git clone https://github.com/your-org/globalcampus-ai.git
+git clone https://github.com/munhkuu/globalcampus-ai.git
 cd globalcampus-ai
 npm install
 ```
 
-**2. Set up environment variables:**
+**2. Configure environment variables**
 ```bash
 cp .env.local.example .env.local
 ```
-Fill in the values — see `ENVIRONMENT_SETUP.md` for complete instructions.
 
-**3. Set up the database:**
-```bash
-# Install Supabase CLI if not already installed
-npm install -g supabase
+Fill in `.env.local`:
+```
+NEXT_PUBLIC_SUPABASE_URL=https://vfiiztyzynmsaftctlnf.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=<your-anon-key>
+NEXT_PUBLIC_APP_URL=http://localhost:3000
 
-# Link to your Supabase project
-supabase link --project-ref YOUR_PROJECT_REF
-
-# Apply migrations
-supabase db push
-
-# Generate TypeScript types from schema
-supabase gen types typescript --linked > lib/types/database.types.ts
+# Optional — required for AI features
+OPENROUTER_API_KEY=sk-or-...
 ```
 
-**4. Run the development server:**
+**3. Run**
 ```bash
 npm run dev
 ```
 
-Open `http://localhost:3000`.
+Open [http://localhost:3000](http://localhost:3000).
 
 ---
 
@@ -86,64 +66,59 @@ Open `http://localhost:3000`.
 
 ```
 globalcampus-ai/
-├── app/                    # Next.js App Router
-│   ├── (auth)/             # Public routes (login, register)
-│   ├── (dashboard)/        # Protected routes
-│   │   ├── page.tsx        # Dashboard overview
-│   │   ├── internships/    # Internship tracker
-│   │   ├── explainer/      # AI Lecture Explainer
-│   │   ├── roadmap/        # Career Roadmap
-│   │   └── vault/          # Study Vault
-│   └── api/                # API routes (AI endpoints)
+├── app/
+│   ├── (auth)/             # /login, /register
+│   ├── (dashboard)/        # /, /internships, /explainer, /roadmap, /vault, /settings
+│   ├── api/                # /api/ai/explain, /api/ai/roadmap, /api/internships/stats
+│   ├── auth/callback/      # OAuth redirect handler
+│   └── onboarding/         # First-run onboarding flow
 ├── components/
-│   ├── ui/                 # shadcn/ui base components
-│   ├── layout/             # Sidebar, Header
-│   ├── dashboard/          # Dashboard widgets
-│   ├── internships/        # Internship feature components
-│   ├── explainer/          # Lecture Explainer components
-│   ├── roadmap/            # Roadmap components
-│   └── vault/              # Vault components
+│   ├── ui/                 # shadcn/ui primitives (owned, not imported)
+│   ├── layout/             # Sidebar, Header, MobileNav
+│   ├── internships/        # ApplicationTable, ApplicationForm, StatusBadge
+│   ├── explainer/          # ExplainerClient, ExplanationOutput
+│   ├── roadmap/            # RoadmapClient, RoadmapView, PhaseCard
+│   └── vault/              # VaultClient, NoteCard, NoteForm
 ├── lib/
-│   ├── supabase/           # Supabase client (server + browser)
-│   ├── ai/                 # AI provider abstraction + prompts
-│   ├── actions/            # Next.js Server Actions (CRUD)
-│   ├── hooks/              # SWR data fetching hooks
-│   ├── utils/              # Date formatting, cn helper, validators
+│   ├── ai/                 # callAI(), prompts, input validators
+│   ├── actions/            # Server Actions (auth, internships, vault, roadmap)
+│   ├── supabase/           # SSR server + browser clients
+│   ├── utils/              # cn, dates, validators, api helpers
 │   └── types/              # Database types + app types
-├── supabase/
-│   └── migrations/         # SQL migration files
-└── middleware.ts            # Auth route protection
+├── supabase/migrations/    # 0001_initial_schema.sql
+└── middleware.ts            # Session refresh + route protection
 ```
 
-Full architecture documentation: `SYSTEM_ARCHITECTURE.md`
+---
+
+## Database
+
+Supabase project: `vfiiztyzynmsaftctlnf` (ap-northeast-1)
+
+Tables (all with RLS):
+- `profiles` — user data + onboarding fields; auto-created on signup via trigger
+- `internship_applications` — full application tracking
+- `vault_notes` — study notes with tags + pin
+- `study_goals` — learning goal tracking
+- `roadmap_sessions` — saved AI-generated roadmaps
+- `ai_interactions` — token usage log per feature
+
+To regenerate TypeScript types from the live schema:
+```bash
+npx supabase gen types typescript --project-id vfiiztyzynmsaftctlnf > lib/types/database.types.ts
+```
 
 ---
 
-## Documentation
+## Key Architectural Decisions
 
-| Document | Contents |
-|---|---|
-| `PRODUCT_REQUIREMENTS_DOCUMENT.md` | Problem statement, user research, feature specs, success metrics |
-| `SYSTEM_ARCHITECTURE.md` | Technical architecture, component design, AI abstraction, security |
-| `DATABASE_SCHEMA.md` | Complete PostgreSQL schema, RLS policies, full SQL migration |
-| `API_SPECIFICATION.md` | All API routes, request/response shapes, Server Actions |
-| `UI_UX_GUIDELINES.md` | Design system, color tokens, typography, component patterns |
-| `DEVELOPMENT_ROADMAP.md` | Phase-by-phase build plan, task breakdown, success criteria |
-| `ENVIRONMENT_SETUP.md` | Environment variables, Supabase setup, deployment guide |
+**AI provider abstraction** — `lib/ai/provider.ts` is the only file that talks to OpenRouter. Switching AI providers requires changing one file and one env var.
 
----
+**Server Actions for mutations** — CRUD goes through Next.js Server Actions, not custom API routes. This keeps secrets server-side and enables `revalidatePath` cache invalidation.
 
-## Key Engineering Decisions
+**RLS as the security boundary** — Every table has `WHERE auth.uid() = user_id` policies enforced at the database layer. A compromised API route cannot leak another user's data.
 
-**Server Actions over API routes for CRUD:** Mutations go through Next.js Server Actions. This keeps business logic server-side, enables cache invalidation via `revalidatePath`, and eliminates the need for a dedicated mutation API layer for simple operations.
-
-**AI provider abstraction:** All AI calls go through `lib/ai/provider.ts`. No component or route imports directly from an AI provider SDK. Switching providers is a 3-line change.
-
-**RLS as the security boundary:** Row-Level Security policies on every user-content table mean a misbehaving API route cannot leak another user's data. The database enforces user isolation, not just application code.
-
-**Prompts as functions:** System prompts are TypeScript functions in `lib/ai/prompts/` that accept runtime parameters. They are version-controlled, testable, and produce consistent output.
-
-**No soft deletes:** Hard deletes with `ON DELETE CASCADE` at the database layer. No `is_deleted` columns creating query complexity at MVP scale.
+**Prompts as typed functions** — `lib/ai/prompts/*.ts` are TypeScript functions that accept runtime parameters and return system prompt strings. Version-controlled, readable, testable.
 
 ---
 
@@ -151,38 +126,15 @@ Full architecture documentation: `SYSTEM_ARCHITECTURE.md`
 
 | Feature | Status |
 |---|---|
-| Authentication | Planned |
-| Dashboard | Planned |
-| Internship Tracker | Planned |
-| AI Lecture Explainer | Planned |
-| Career Roadmap | Planned |
-| Study Vault | Planned |
-| Study Goals | Planned |
-
-See `DEVELOPMENT_ROADMAP.md` for the full 12-week build plan.
-
----
-
-## Environment Variables
-
-See `ENVIRONMENT_SETUP.md` for complete documentation. Required variables:
-
-```
-NEXT_PUBLIC_SUPABASE_URL
-NEXT_PUBLIC_SUPABASE_ANON_KEY
-SUPABASE_SERVICE_ROLE_KEY
-OPENROUTER_API_KEY
-OPENROUTER_DEFAULT_MODEL
-OPENROUTER_FAST_MODEL
-```
-
----
-
-## Deployment
-
-The application is Vercel-ready. Connect the repository to a Vercel project, configure environment variables, and every push to `main` deploys automatically.
-
-See `ENVIRONMENT_SETUP.md` → Deployment section for the complete deployment checklist.
+| Authentication (email + Google OAuth) | ✅ Complete |
+| User onboarding flow | ✅ Complete |
+| Dashboard | ✅ Complete |
+| Internship Tracker (full CRUD) | ✅ Complete |
+| AI Lecture Explainer | ✅ Complete |
+| AI Career Roadmap Generator | ✅ Complete |
+| Study Vault (full CRUD) | ✅ Complete |
+| Mobile navigation | ✅ Complete |
+| Study Goals UI | 🔲 DB schema ready, UI planned |
 
 ---
 

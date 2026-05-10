@@ -67,8 +67,17 @@ export const internshipApplicationSchema = z.object({
   is_priority: z.boolean().default(false),
 })
 
+// ─── Vault Notes ──────────────────────────────────────────────────────────────
+
+export const vaultNoteSchema = z.object({
+  title: z.string().min(1, 'Title is required').max(200),
+  content: z.string().max(50000).optional().default(''),
+  tagsRaw: z.string().optional().default(''),
+})
+
 export type LoginInput = z.infer<typeof loginSchema>
 export type RegisterInput = z.infer<typeof registerSchema>
 export type ProfileUpdateInput = z.infer<typeof profileUpdateSchema>
 export type OnboardingInput = z.infer<typeof onboardingSchema>
 export type InternshipApplicationInput = z.infer<typeof internshipApplicationSchema>
+export type VaultNoteInput = z.infer<typeof vaultNoteSchema>
