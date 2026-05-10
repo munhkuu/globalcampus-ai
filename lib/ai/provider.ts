@@ -48,6 +48,30 @@ export interface RoadmapResponse {
   resources: Array<{ title: string; type: string; url: string }>
 }
 
+export interface BugFixResponse {
+  language: string
+  originalIssue: string
+  fixedCode: string
+  changes: string[]
+  explanation: string
+  tips: string[]
+}
+
+export interface ProjectFile {
+  filename: string
+  description: string
+  content: string
+}
+
+export interface ProjectResponse {
+  title: string
+  description: string
+  stack: string[]
+  files: ProjectFile[]
+  runInstructions: string
+  nextSteps: string[]
+}
+
 // ─── Core fetch wrapper ────────────────────────────────────────────────────────
 
 export async function callAI(

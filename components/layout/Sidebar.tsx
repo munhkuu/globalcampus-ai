@@ -8,6 +8,8 @@ import {
   BookOpen,
   Map,
   Lightbulb,
+  Bug,
+  FolderCode,
   Settings,
 } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
@@ -20,6 +22,8 @@ const navItems: NavItem[] = [
   { label: 'Study Vault', href: '/vault', icon: BookOpen },
   { label: 'Career Roadmap', href: '/roadmap', icon: Map },
   { label: 'Lecture AI', href: '/explainer', icon: Lightbulb },
+  { label: 'Bug Fixer', href: '/bugfix', icon: Bug },
+  { label: 'Project Gen', href: '/project', icon: FolderCode },
 ]
 
 const bottomItems: NavItem[] = [

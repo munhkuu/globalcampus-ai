@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Menu, LayoutDashboard, Briefcase, BookOpen, Map, Lightbulb, Settings } from 'lucide-react'
+import { Menu, LayoutDashboard, Briefcase, BookOpen, Map, Lightbulb, Bug, FolderCode, Settings } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent } from '@/components/ui/sheet'
 import { Separator } from '@/components/ui/separator'
@@ -16,6 +16,8 @@ const navItems: NavItem[] = [
   { label: 'Study Vault', href: '/vault', icon: BookOpen },
   { label: 'Career Roadmap', href: '/roadmap', icon: Map },
   { label: 'Lecture AI', href: '/explainer', icon: Lightbulb },
+  { label: 'Bug Fixer', href: '/bugfix', icon: Bug },
+  { label: 'Project Gen', href: '/project', icon: FolderCode },
 ]
 
 const bottomItems: NavItem[] = [

@@ -24,3 +24,21 @@ export function validateRoadmapInput(input: {
     return { valid: false, reason: 'Timeline must be between 1 and 24 months.' }
   return { valid: true }
 }
+
+export function validateBugFixInput(code: string): ValidationResult {
+  const trimmed = code.trim()
+  if (trimmed.length < 10)
+    return { valid: false, reason: 'Code is too short — paste your broken code.' }
+  if (trimmed.length > 8000)
+    return { valid: false, reason: 'Code exceeds 8000 characters. Please shorten it.' }
+  return { valid: true }
+}
+
+export function validateProjectInput(description: string): ValidationResult {
+  const trimmed = description.trim()
+  if (trimmed.length < 10)
+    return { valid: false, reason: 'Description is too short — describe what you want to build.' }
+  if (trimmed.length > 1000)
+    return { valid: false, reason: 'Description exceeds 1000 characters. Please shorten it.' }
+  return { valid: true }
+}

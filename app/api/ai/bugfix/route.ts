@@ -1,10 +1,10 @@
 import { requireAuth, apiSuccess, apiError, API_ERRORS } from '@/lib/utils/api'
 import { callOpusExtended, parseAIJson, hashInput } from '@/lib/ai/anthropic'
-import { buildExplainerSystemPrompt } from '@/lib/ai/prompts/explainer'
-import { validateExplainerInput } from '@/lib/ai/validators'
-import type { ExplainerResponse } from '@/lib/ai/provider'
+import { buildBugFixSystemPrompt } from '@/lib/ai/prompts/bugfix'
+import { validateBugFixInput } from '@/lib/ai/validators'
+import type { BugFixResponse } from '@/lib/ai/provider'
 
-const RATE_LIMIT = 15
+const RATE_LIMIT = 10
 const RATE_WINDOW_MS = 60 * 60 * 1000
 
 export async function POST(request: Request) {
@@ -12,51 +12,47 @@ export async function POST(request: Request) {
   if (unauthorized) return API_ERRORS.UNAUTHORIZED()
 
   const body = await request.json() as {
-    input?: string
-    depth?: string
-    codeLanguage?: string
-    bilingual?: boolean
+    code?: string
+    language?: string
+    errorMessage?: string
   }
 
-  const { input = '', depth = 'beginner', codeLanguage = 'Python', bilingual = false } = body
+  const { code = '', language = 'Python', errorMessage = '' } = body
 
-  const validation = validateExplainerInput(input)
+  const validation = validateBugFixInput(code)
   if (!validation.valid) return apiError(validation.reason!, 400)
 
-  // Rate limit check
   const windowStart = new Date(Date.now() - RATE_WINDOW_MS).toISOString()
   const { count } = await supabase
     .from('ai_interactions')
     .select('*', { count: 'exact', head: true })
     .eq('user_id', user!.id)
-    .eq('feature', 'explainer')
+    .eq('feature', 'bugfix')
     .gte('created_at', windowStart)
 
   if ((count ?? 0) >= RATE_LIMIT) {
-    return apiError('Rate limit reached — maximum 15 explain requests per hour.', 429)
+    return apiError('Rate limit reached — maximum 10 bug fix requests per hour.', 429)
   }
 
   try {
-    const systemPrompt = buildExplainerSystemPrompt({
-      depth: (depth as 'beginner' | 'intermediate' | 'advanced'),
-      codeLanguage,
-      bilingual,
-    })
+    const systemPrompt = buildBugFixSystemPrompt(language)
+    const userMessage = errorMessage
+      ? `${code}\n\nError message: ${errorMessage}`
+      : code
 
-    const aiResponse = await callOpusExtended(input, {
+    const aiResponse = await callOpusExtended(userMessage, {
       systemPrompt,
-      budgetTokens: 5000,
-      maxTokens: 10000,
+      budgetTokens: 6000,
+      maxTokens: 12000,
     })
 
-    const result = parseAIJson<ExplainerResponse>(aiResponse.content)
+    const result = parseAIJson<BugFixResponse>(aiResponse.content)
 
-    // Log interaction (non-blocking)
     supabase.from('ai_interactions').insert({
       user_id: user!.id,
-      feature: 'explainer',
+      feature: 'bugfix',
       model_used: aiResponse.model,
-      input_hash: hashInput(input),
+      input_hash: hashInput(code),
       prompt_tokens: aiResponse.usage.promptTokens,
       completion_tokens: aiResponse.usage.completionTokens,
     }).then(() => {})
@@ -65,6 +61,6 @@ export async function POST(request: Request) {
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'AI request failed'
     if (msg.includes('ANTHROPIC_API_KEY')) return apiError(msg, 503)
-    return apiError('Could not generate explanation. Please try again.', 500)
+    return apiError('Could not fix the code. Please try again.', 500)
   }
 }
