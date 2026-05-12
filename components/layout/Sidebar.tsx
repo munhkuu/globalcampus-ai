@@ -8,8 +8,7 @@ import {
   BookOpen,
   Map,
   Lightbulb,
-  Bug,
-  FolderCode,
+  PenLine,
   Settings,
 } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
@@ -17,13 +16,12 @@ import { Separator } from '@/components/ui/separator'
 import type { NavItem } from '@/lib/types/app.types'
 
 const navItems: NavItem[] = [
-  { label: 'Dashboard', href: '/', icon: LayoutDashboard },
+  { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+  { label: '자소서 Workshop', href: '/coverletter', icon: PenLine },
+  { label: 'Lecture Explainer', href: '/explainer', icon: Lightbulb },
   { label: 'Internships', href: '/internships', icon: Briefcase },
   { label: 'Study Vault', href: '/vault', icon: BookOpen },
   { label: 'Career Roadmap', href: '/roadmap', icon: Map },
-  { label: 'Lecture AI', href: '/explainer', icon: Lightbulb },
-  { label: 'Bug Fixer', href: '/bugfix', icon: Bug },
-  { label: 'Project Gen', href: '/project', icon: FolderCode },
 ]
 
 const bottomItems: NavItem[] = [
@@ -31,8 +29,7 @@ const bottomItems: NavItem[] = [
 ]
 
 function NavLink({ item, pathname }: { item: NavItem; pathname: string }) {
-  const isActive =
-    item.href === '/' ? pathname === '/' : pathname.startsWith(item.href)
+  const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`)
 
   return (
     <Link
@@ -62,7 +59,11 @@ export function Sidebar() {
     <aside className="hidden w-[220px] shrink-0 flex-col border-r bg-sidebar md:flex">
       {/* Logo */}
       <div className="flex h-14 items-center border-b px-4">
-        <Link href="/" className="flex items-center gap-2.5">
+        <Link
+          href="/"
+          className="flex items-center gap-2.5"
+          title="View landing page"
+        >
           <div className="flex h-6 w-6 items-center justify-center rounded-md bg-foreground">
             <span className="text-[10px] font-bold text-background leading-none">
               GC

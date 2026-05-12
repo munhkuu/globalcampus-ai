@@ -1,7 +1,20 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
-const PUBLIC_ROUTES = ['/login', '/register', '/auth/callback']
+const PUBLIC_PREFIXES = [
+  '/login',
+  '/register',
+  '/auth/callback',
+  '/pricing',
+  '/api/stripe/webhook',
+  '/opengraph-image',
+  '/twitter-image',
+]
+
+function isPublic(pathname: string): boolean {
+  if (pathname === '/') return true
+  return PUBLIC_PREFIXES.some((r) => pathname.startsWith(r))
+}
 
 export async function proxy(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request })
@@ -32,18 +45,21 @@ export async function proxy(request: NextRequest) {
   } = await supabase.auth.getUser()
 
   const { pathname } = request.nextUrl
-  const isPublicRoute = PUBLIC_ROUTES.some((r) => pathname.startsWith(r))
 
-  if (!user && !isPublicRoute) {
+  if (!user && !isPublic(pathname)) {
     const url = request.nextUrl.clone()
     url.pathname = '/login'
     url.searchParams.set('redirectTo', pathname)
     return NextResponse.redirect(url)
   }
 
+  // Logged-in users only get bounced off auth pages — the landing page (`/`)
+  // and pricing page stay accessible so they can re-read the value prop or
+  // share the link with friends. The landing page itself shows a "Go to
+  // dashboard" CTA instead of "Start free" when signed in.
   if (user && (pathname === '/login' || pathname === '/register')) {
     const url = request.nextUrl.clone()
-    url.pathname = '/'
+    url.pathname = '/dashboard'
     return NextResponse.redirect(url)
   }
 

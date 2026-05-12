@@ -47,5 +47,5 @@ export async function completeOnboarding(
   }
 
   revalidatePath('/', 'layout')
-  redirect('/')
+  redirect('/dashboard')
 }

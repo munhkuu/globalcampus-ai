@@ -51,6 +51,17 @@ const STATUS_OPTIONS = [
   { value: 'accepted', label: 'Accepted' },
 ] as const
 
+const KOREAN_TECH_COMPANIES = [
+  'Samsung',
+  'Naver',
+  'Kakao',
+  'Coupang',
+  'Toss',
+  'LINE',
+  'Krafton',
+  'LG CNS',
+] as const
+
 interface ApplicationFormProps {
   open: boolean
   onClose: () => void
@@ -140,6 +151,32 @@ export function ApplicationForm({
             onSubmit={form.handleSubmit(onSubmit)}
             className="flex flex-1 flex-col gap-5 px-6 pb-6 pt-4"
           >
+            {/* Quick-add Korean tech employers (new applications only) */}
+            {!isEdit && (
+              <div className="space-y-2">
+                <p className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
+                  Quick add
+                </p>
+                <div className="flex flex-wrap gap-1.5">
+                  {KOREAN_TECH_COMPANIES.map((name) => (
+                    <button
+                      key={name}
+                      type="button"
+                      onClick={() => {
+                        form.setValue('company_name', name, { shouldDirty: true })
+                        if (!form.getValues('location')) {
+                          form.setValue('location', 'Seoul')
+                        }
+                      }}
+                      className="rounded-full border border-border bg-background px-2.5 py-1 text-xs text-muted-foreground transition-colors hover:border-foreground/40 hover:text-foreground"
+                    >
+                      {name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Company + Role */}
             <div className="grid grid-cols-2 gap-3">
               <FormField

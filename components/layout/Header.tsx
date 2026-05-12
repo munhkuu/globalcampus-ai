@@ -1,7 +1,7 @@
 'use client'
 
 import { usePathname } from 'next/navigation'
-import { Moon, Sun, LogOut, Settings } from 'lucide-react'
+import { Moon, Sun, LogOut, Settings, Home } from 'lucide-react'
 import { useTheme } from '@/components/theme-provider'
 import { useTransition } from 'react'
 import { logout } from '@/lib/actions/auth'
@@ -20,11 +20,14 @@ import { MobileNav } from './MobileNav'
 import Link from 'next/link'
 
 const pageTitles: Record<string, string> = {
-  '/': 'Dashboard',
+  '/dashboard': 'Dashboard',
+  '/coverletter': '자소서 Workshop',
   '/internships': 'Internships',
   '/vault': 'Study Vault',
   '/roadmap': 'Career Roadmap',
-  '/explainer': 'Lecture AI',
+  '/explainer': 'Lecture Explainer',
+  '/bugfix': 'Bug Fixer',
+  '/project': 'Project Generator',
   '/settings': 'Settings',
 }
 
@@ -57,7 +60,7 @@ export function Header({ displayName, email, avatarUrl, initials }: HeaderProps)
 
   const pageTitle =
     Object.entries(pageTitles)
-      .filter(([key]) => (key === '/' ? pathname === '/' : pathname.startsWith(key)))
+      .filter(([key]) => pathname === key || pathname.startsWith(`${key}/`))
       .sort((a, b) => b[0].length - a[0].length)[0]?.[1] ?? 'Dashboard'
 
   function handleLogout() {
@@ -97,6 +100,12 @@ export function Header({ displayName, email, avatarUrl, initials }: HeaderProps)
               <Link href="/settings" className="cursor-pointer">
                 <Settings className="mr-2 h-4 w-4" />
                 Settings
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link href="/" className="cursor-pointer">
+                <Home className="mr-2 h-4 w-4" />
+                View landing page
               </Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator />

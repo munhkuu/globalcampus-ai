@@ -3,6 +3,7 @@ import { callOpusExtended, parseAIJson, hashInput } from '@/lib/ai/anthropic'
 import { buildBugFixSystemPrompt } from '@/lib/ai/prompts/bugfix'
 import { validateBugFixInput } from '@/lib/ai/validators'
 import type { BugFixResponse } from '@/lib/ai/provider'
+import { checkAIQuota } from '@/lib/billing/quota'
 
 const RATE_LIMIT = 10
 const RATE_WINDOW_MS = 60 * 60 * 1000
@@ -21,6 +22,14 @@ export async function POST(request: Request) {
 
   const validation = validateBugFixInput(code)
   if (!validation.valid) return apiError(validation.reason!, 400)
+
+  const quota = await checkAIQuota(supabase, user!.id)
+  if (!quota.ok) {
+    return apiError(
+      `Daily free limit reached (${quota.limit} AI calls). Upgrade to Pro for unlimited.`,
+      402
+    )
+  }
 
   const windowStart = new Date(Date.now() - RATE_WINDOW_MS).toISOString()
   const { count } = await supabase

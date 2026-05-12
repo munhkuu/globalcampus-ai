@@ -55,7 +55,7 @@ export function BugFixClient() {
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Bug Fixer</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Paste your broken code. Opus 4.7 will reason through the bugs and return a fully fixed version.
+          Paste your broken code and get a fully fixed version with an explanation of what went wrong.
         </p>
       </div>
 

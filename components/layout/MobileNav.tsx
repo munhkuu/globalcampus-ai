@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Menu, LayoutDashboard, Briefcase, BookOpen, Map, Lightbulb, Bug, FolderCode, Settings } from 'lucide-react'
+import { Menu, LayoutDashboard, Briefcase, BookOpen, Map, Lightbulb, PenLine, Settings } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent } from '@/components/ui/sheet'
 import { Separator } from '@/components/ui/separator'
@@ -11,13 +11,12 @@ import { cn } from '@/lib/utils/cn'
 import type { NavItem } from '@/lib/types/app.types'
 
 const navItems: NavItem[] = [
-  { label: 'Dashboard', href: '/', icon: LayoutDashboard },
+  { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+  { label: '자소서 Workshop', href: '/coverletter', icon: PenLine },
+  { label: 'Lecture Explainer', href: '/explainer', icon: Lightbulb },
   { label: 'Internships', href: '/internships', icon: Briefcase },
   { label: 'Study Vault', href: '/vault', icon: BookOpen },
   { label: 'Career Roadmap', href: '/roadmap', icon: Map },
-  { label: 'Lecture AI', href: '/explainer', icon: Lightbulb },
-  { label: 'Bug Fixer', href: '/bugfix', icon: Bug },
-  { label: 'Project Gen', href: '/project', icon: FolderCode },
 ]
 
 const bottomItems: NavItem[] = [
@@ -29,7 +28,7 @@ export function MobileNav() {
   const pathname = usePathname()
 
   function isActive(href: string) {
-    return href === '/' ? pathname === '/' : pathname.startsWith(href)
+    return pathname === href || pathname.startsWith(`${href}/`)
   }
 
   function NavLink({ item }: { item: NavItem }) {
@@ -67,7 +66,7 @@ export function MobileNav() {
         <SheetContent side="left" className="w-[220px] p-0">
           {/* Logo */}
           <div className="flex h-14 items-center border-b px-4">
-            <Link href="/" onClick={() => setOpen(false)} className="flex items-center gap-2.5">
+            <Link href="/" onClick={() => setOpen(false)} className="flex items-center gap-2.5" title="View landing page">
               <div className="flex h-6 w-6 items-center justify-center rounded-md bg-foreground">
                 <span className="text-[10px] font-bold text-background leading-none">GC</span>
               </div>

@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Briefcase, BookOpen, Map, Lightbulb, ArrowRight, Clock } from 'lucide-react'
+import { Briefcase, BookOpen, Map, Lightbulb, ArrowRight, Clock, PenLine } from 'lucide-react'
 import Link from 'next/link'
 import { StatusBadge } from '@/components/internships/StatusBadge'
 import { relativeDate } from '@/lib/utils/dates'
@@ -59,11 +59,11 @@ export default async function DashboardPage() {
     { label: 'Roadmaps', value: roadmapCount ?? 0, icon: Map, href: '/roadmap' },
   ]
 
-  const quickLinks = [
-    { href: '/internships', icon: Briefcase, label: 'Track an application', color: 'text-blue-500', bg: 'bg-blue-500/10' },
-    { href: '/roadmap', icon: Map, label: 'Generate a roadmap', color: 'text-purple-500', bg: 'bg-purple-500/10' },
+  const secondaryLinks = [
     { href: '/explainer', icon: Lightbulb, label: 'Explain a lecture', color: 'text-amber-500', bg: 'bg-amber-500/10' },
+    { href: '/internships', icon: Briefcase, label: 'Track an application', color: 'text-blue-500', bg: 'bg-blue-500/10' },
     { href: '/vault', icon: BookOpen, label: 'Open Study Vault', color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
+    { href: '/roadmap', icon: Map, label: 'Generate a roadmap', color: 'text-purple-500', bg: 'bg-purple-500/10' },
   ]
 
   return (
@@ -167,8 +167,33 @@ export default async function DashboardPage() {
         <h2 className="mb-3 text-xs font-medium uppercase tracking-widest text-muted-foreground">
           Quick Actions
         </h2>
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          {quickLinks.map((link) => (
+
+        {/* Featured: 자소서 Workshop */}
+        <Link href="/coverletter">
+          <Card className="group relative overflow-hidden border-amber-500/30 bg-gradient-to-br from-amber-500/10 via-amber-500/5 to-transparent transition-all hover:border-amber-500/50 hover:shadow-lg cursor-pointer">
+            <CardContent className="flex items-center gap-4 p-5">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-amber-500/15">
+                <PenLine className="h-6 w-6 text-amber-500" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-semibold">Write your Samsung 자소서</p>
+                  <span className="rounded-full border border-amber-500/30 bg-amber-500/10 px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-widest text-amber-400">
+                    Featured
+                  </span>
+                </div>
+                <p className="mt-0.5 text-xs text-muted-foreground">
+                  Real 자소서 questions from Samsung, Naver, Kakao, Toss. AI critique catches what foreigners always miss.
+                </p>
+              </div>
+              <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-foreground" />
+            </CardContent>
+          </Card>
+        </Link>
+
+        {/* Secondary actions */}
+        <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          {secondaryLinks.map((link) => (
             <Link key={link.href} href={link.href}>
               <Card className="border-border/60 transition-all hover:border-foreground/20 hover:shadow-sm cursor-pointer">
                 <CardContent className="flex flex-col items-start gap-2.5 p-4">

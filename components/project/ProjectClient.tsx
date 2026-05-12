@@ -61,7 +61,7 @@ export function ProjectClient() {
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Project Generator</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Describe what you want to build. Opus 4.7 will plan and generate a complete, runnable project.
+          Describe what you want to build. Get a planned, complete, runnable project.
         </p>
       </div>
 

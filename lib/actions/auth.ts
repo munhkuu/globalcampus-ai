@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
+import { cookies } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'
 import { loginSchema, registerSchema } from '@/lib/utils/validators'
 
@@ -28,7 +29,7 @@ export async function login(formData: FormData) {
   }
 
   revalidatePath('/', 'layout')
-  redirect('/')
+  redirect('/dashboard')
 }
 
 export async function register(formData: FormData) {
@@ -45,11 +46,17 @@ export async function register(formData: FormData) {
     return { error: result.error.issues[0]?.message ?? 'Invalid input' }
   }
 
+  const cookieStore = await cookies()
+  const signupSource = cookieStore.get('gc_source')?.value
+
   const { data, error } = await supabase.auth.signUp({
     email: result.data.email,
     password: result.data.password,
     options: {
-      data: { full_name: result.data.fullName },
+      data: {
+        full_name: result.data.fullName,
+        ...(signupSource ? { signup_source: signupSource } : {}),
+      },
       emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback`,
     },
   })
@@ -65,7 +72,7 @@ export async function register(formData: FormData) {
   }
 
   revalidatePath('/', 'layout')
-  redirect('/')
+  redirect('/dashboard')
 }
 
 export async function loginWithGoogle(): Promise<void> {

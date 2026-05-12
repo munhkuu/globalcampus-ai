@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import {
   Plus,
   Star,
@@ -10,6 +11,7 @@ import {
   ExternalLink,
   ArrowUpDown,
   Search,
+  PenLine,
 } from 'lucide-react'
 import { deleteApplication, togglePriority } from '@/lib/actions/internships'
 import { formatDate, relativeDate, isPast } from '@/lib/utils/dates'
@@ -44,6 +46,7 @@ type SortOrder = 'asc' | 'desc'
 
 interface ApplicationTableProps {
   initialApplications: InternshipApplication[]
+  draftCounts?: Record<string, number>
 }
 
 function computeCounts(
@@ -65,6 +68,7 @@ function computeCounts(
 
 export function ApplicationTable({
   initialApplications,
+  draftCounts = {},
 }: ApplicationTableProps) {
   const router = useRouter()
   const { toast } = useToast()
@@ -274,7 +278,20 @@ export function ApplicationTable({
 
                     <TableCell className="font-medium">
                       <div className="flex flex-col">
-                        <span>{app.company_name}</span>
+                        <div className="flex items-center gap-2">
+                          <span>{app.company_name}</span>
+                          {draftCounts[app.id] > 0 && (
+                            <Link
+                              href={`/coverletter`}
+                              className="inline-flex items-center gap-1 rounded-full border border-amber-500/30 bg-amber-500/10 px-1.5 py-0.5 text-[10px] font-medium text-amber-400 transition-colors hover:bg-amber-500/15"
+                              title={`${draftCounts[app.id]} 자소서 draft${draftCounts[app.id] !== 1 ? 's' : ''}`}
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <PenLine className="h-2.5 w-2.5" />
+                              {draftCounts[app.id]}
+                            </Link>
+                          )}
+                        </div>
                         <span className="text-xs text-muted-foreground sm:hidden">
                           {app.role_title}
                         </span>

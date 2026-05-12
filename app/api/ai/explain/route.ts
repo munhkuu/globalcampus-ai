@@ -1,8 +1,10 @@
 import { requireAuth, apiSuccess, apiError, API_ERRORS } from '@/lib/utils/api'
-import { callOpusExtended, parseAIJson, hashInput } from '@/lib/ai/anthropic'
+import { callGemini } from '@/lib/ai/gemini'
+import { parseAIJson, hashInput } from '@/lib/ai/provider'
 import { buildExplainerSystemPrompt } from '@/lib/ai/prompts/explainer'
 import { validateExplainerInput } from '@/lib/ai/validators'
 import type { ExplainerResponse } from '@/lib/ai/provider'
+import { checkAIQuota } from '@/lib/billing/quota'
 
 const RATE_LIMIT = 15
 const RATE_WINDOW_MS = 60 * 60 * 1000
@@ -22,6 +24,14 @@ export async function POST(request: Request) {
 
   const validation = validateExplainerInput(input)
   if (!validation.valid) return apiError(validation.reason!, 400)
+
+  const quota = await checkAIQuota(supabase, user!.id)
+  if (!quota.ok) {
+    return apiError(
+      `Daily free limit reached (${quota.limit} AI calls). Upgrade to Pro for unlimited.`,
+      402
+    )
+  }
 
   // Rate limit check
   const windowStart = new Date(Date.now() - RATE_WINDOW_MS).toISOString()
@@ -43,10 +53,10 @@ export async function POST(request: Request) {
       bilingual,
     })
 
-    const aiResponse = await callOpusExtended(input, {
+    const aiResponse = await callGemini(input, {
       systemPrompt,
-      budgetTokens: 5000,
-      maxTokens: 10000,
+      jsonMode: true,
+      maxTokens: 6000,
     })
 
     const result = parseAIJson<ExplainerResponse>(aiResponse.content)
@@ -64,7 +74,8 @@ export async function POST(request: Request) {
     return apiSuccess(result)
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'AI request failed'
-    if (msg.includes('ANTHROPIC_API_KEY')) return apiError(msg, 503)
+    if (msg.includes('GOOGLE_API_KEY')) return apiError(msg, 503)
+    if (process.env.NODE_ENV !== 'production') return apiError(`Explainer failed: ${msg}`, 500)
     return apiError('Could not generate explanation. Please try again.', 500)
   }
 }

@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Separator } from '@/components/ui/separator'
 import { ExplanationOutput } from './ExplanationOutput'
+import { PostActionFeedback } from '@/components/feedback/PostActionFeedback'
 import { cn } from '@/lib/utils/cn'
 import type { ExplainerResponse } from '@/lib/ai/provider'
 
@@ -166,6 +167,7 @@ e.g. 교수님이 말씀하신 dynamic programming이 뭔가요?"
         <>
           <Separator />
           <ExplanationOutput result={result} codeLanguage={lang} />
+          <PostActionFeedback feature="explainer" storageKey="gc_pa_explainer" />
         </>
       )}
     </div>

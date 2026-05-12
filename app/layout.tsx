@@ -10,13 +10,14 @@ export const metadata: Metadata = {
     template: '%s | GlobalCampus AI',
   },
   description:
-    'AI-powered productivity platform for international CS students — track internships, generate career roadmaps, and master your lectures.',
+    'For international CS students hunting Samsung, Naver, Kakao internships. Decode Korean lectures, track every application, ace the coding test.',
   metadataBase: new URL(
     process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
   ),
   openGraph: {
     title: 'GlobalCampus AI',
-    description: 'AI-powered productivity for international CS students',
+    description:
+      'For international CS students hunting Korean tech internships. Free during beta.',
     type: 'website',
   },
 }
@@ -32,7 +33,7 @@ export default function RootLayout({
       className={`${GeistSans.variable} ${GeistMono.variable} dark`}
       suppressHydrationWarning
     >
-      <body className="font-sans">
+      <body className="font-sans" suppressHydrationWarning>
         <Providers>{children}</Providers>
       </body>
     </html>
